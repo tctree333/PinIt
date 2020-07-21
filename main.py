@@ -29,6 +29,14 @@ if __name__ == "__main__":
             except discord.HTTPException:
                 await ctx.send("**Pinning the message failed.** Are there more than 50 pinned messages already?")
 
+    @bot.event
+    async def on_reaction_remove(reaction, user):
+        if reaction.emoji == "\N{PUSHPIN}" and reaction.count < 3:
+            try:
+                await reaction.message.unpin()
+            except discord.HTTPException:
+                await ctx.send("**Unpinning the message failed.**")
+
     ## Error handling
     @bot.event
     async def on_command_error(ctx, error):
