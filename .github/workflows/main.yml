@@ -1,0 +1,21 @@
+name: "Deploy to Dokku"
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    name: "Deploy Pipeline"
+    runs-on: ubuntu-latest
+
+    steps:
+        - uses: actions/checkout@v2
+
+        - name: Deploy to Dokku
+          uses: tctree333/SciOlyID-Actions/deploy-dokku@master
+          with:
+            dokku app name: pin-it
+            dokku host: ${{ secrets.DOKKU_HOST }}
+            ssh private key: ${{ secrets.PRIVATE_KEY }}
