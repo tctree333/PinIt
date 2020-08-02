@@ -49,21 +49,27 @@ if __name__ == "__main__":
     async def react(
         ctx, num: int, emoji: Union[discord.PartialEmoji, str], message: discord.Message
     ):
+        print("command: react")
         if num > 10 or num < 1:
+            print("invalid num")
             await ctx.send(
                 "**The number of reactions is invalid!**\n*Please use a number between 1 and 10 inclusive.*"
             )
             return
         if isinstance(emoji, discord.PartialEmoji) and emoji.is_custom_emoji():
+            print("custom emoji")
             emoji_content: bytes = await emoji.url.read()
             emoji_name = emoji.name if emoji.name else "PinItCustomEmote"
         if isinstance(emoji, str):
+            print("unicode emoji")
             url = TWEMOJI_CDN_URL.format("-".join([f"{ord(char):x}" for char in emoji]))
             async with aiohttp.ClientSession() as session:
                 async with session.get(url) as resp:
                     emoji_content = await resp.read()
             emoji_name = emoji_.demojize(emoji).replace(":", "").replace("-", "_")
+        print("emoji_name:", emoji_name)
         for i in range(num):
+            print(f"reacting {i} of {num}")
             new_emoji = await ctx.guild.create_custom_emoji(
                 name=emoji_name, image=emoji_content
             )
