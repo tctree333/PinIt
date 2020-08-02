@@ -68,12 +68,12 @@ if __name__ == "__main__":
             async with aiohttp.ClientSession() as session:
                 async with session.get(url) as resp:
                     emoji_content = await resp.read()
-            emoji_name = emoji_.demojize(emoji).replace(":", "").replace("-", "_")
+            emoji_name = emoji_.demojize(emoji, use_aliases=True).replace(":", "").replace("-", "_")
         print("emoji_name:", emoji_name)
         print("len emoji_content:", len(emoji_content))
 
         for i in range(num):
-            print(f"reacting {i} of {num}")
+            print(f"reacting {i+1} of {num}")
             new_emoji = await ctx.guild.create_custom_emoji(
                 name=emoji_name, image=emoji_content
             )
