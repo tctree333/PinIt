@@ -6,6 +6,8 @@ import discord
 import emoji as emoji_
 from discord.ext import commands
 
+from cache import cache
+
 TWEMOJI_CDN_URL = "https://twemoji.maxcdn.com/v/latest/72x72/{}.png"
 
 if __name__ == "__main__":
@@ -46,7 +48,7 @@ if __name__ == "__main__":
                 await ctx.send("**Unpinning the message failed.**")
 
 
-    @bot.command(help="React multiple times with the same emoji!", aliases=["r"])
+    @bot.command(help="- React multiple times with the same emoji!", aliases=["r"])
     @commands.guild_only()
     async def react(
         ctx, num: int, emoji: Union[discord.PartialEmoji, str], message: discord.Message
@@ -64,10 +66,7 @@ if __name__ == "__main__":
             emoji_name = emoji.name if emoji.name else "PinItCustomEmote"
         if isinstance(emoji, str):
             print("unicode emoji")
-            url = TWEMOJI_CDN_URL.format("-".join([f"{ord(char):x}" for char in emoji]))
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url) as resp:
-                    emoji_content = await resp.read()
+            emoji_content = await get_emoji(emoji)
             emoji_name = emoji_.demojize(emoji, use_aliases=True).replace(":", "").replace("-", "_")
         print("emoji_name:", emoji_name)
         print("len emoji_content:", len(emoji_content))
@@ -83,6 +82,44 @@ if __name__ == "__main__":
             await new_emoji.delete()
             print("deleted emoji")
         await ctx.message.add_reaction("\N{THUMBS UP SIGN}")
+
+
+    @bot.command(help="- React with words!", aliases=["m"])
+    @commands.guild_only()
+    async def message(
+        ctx, string: str, message: discord.Message
+    ):
+        print("command: message")
+        if len(string) < 1 or len(string) > 10:
+            print("invalid num")
+            await ctx.send(
+                "**The string is invalid!**\n*Please use a word less than between 1 and 10 letters inclusive.*"
+            )
+            return
+        print("string:", string)
+        for letter in string:
+            print("letter: ", letter)
+            emoji_name = f":regional_indicator_{letter}:"
+            emoji_content = await get_emoji(emoji_.emojize(emoji_name, use_aliases=True))
+            print("len emoji_content:", len(emoji_content))
+            new_emoji = await ctx.guild.create_custom_emoji(
+                name=emoji_name.replace(":", ""), image=emoji_content
+            )
+            print("created emoji")
+            await message.add_reaction(new_emoji)
+            print("adding reaction")
+            await new_emoji.delete()
+            print("deleted emoji")
+        await ctx.message.add_reaction("\N{THUMBS UP SIGN}")
+
+
+    @cache()
+    async def get_emoji(emoji: str) -> bytes:
+        url = TWEMOJI_CDN_URL.format("-".join([f"{ord(char):x}" for char in emoji]))
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as resp:
+                emoji_content = await resp.read()
+        return emoji_content
 
 
     ## Error handling
