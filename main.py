@@ -1,7 +1,12 @@
 import os
+from typing import Union
 
+import aiohttp
 import discord
+import emoji as emoji_
 from discord.ext import commands
+
+TWEMOJI_CDN_URL = "https://twemoji.maxcdn.com/v/latest/72x72/{}.png"
 
 if __name__ == "__main__":
     bot = commands.Bot(
@@ -27,7 +32,9 @@ if __name__ == "__main__":
             try:
                 await reaction.message.pin()
             except discord.HTTPException:
-                await ctx.send("**Pinning the message failed.** Are there more than 50 pinned messages already?")
+                await ctx.send(
+                    "**Pinning the message failed.** Are there more than 50 pinned messages already?"
+                )
 
     @bot.event
     async def on_reaction_remove(reaction, user):
@@ -36,6 +43,33 @@ if __name__ == "__main__":
                 await reaction.message.unpin()
             except discord.HTTPException:
                 await ctx.send("**Unpinning the message failed.**")
+
+    @bot.command(help="React multiple times with the same emoji!", aliases=["r"])
+    @commands.guild_only()
+    async def react(
+        ctx, num: int, emoji: Union[discord.PartialEmoji, str], message: discord.Message
+    ):
+        if num > 10 or num < 1:
+            await ctx.send(
+                "**The number of reactions is invalid!**\n*Please use a number between 1 and 10 inclusive.*"
+            )
+            return
+        if isinstance(emoji, discord.PartialEmoji) and emoji.is_custom_emoji():
+            emoji_content: bytes = await emoji.url.read()
+            emoji_name = emoji.name if emoji.name else "PinItCustomEmote"
+        if isinstance(emoji, str):
+            url = TWEMOJI_CDN_URL.format("-".join([f"{ord(char):x}" for char in emoji]))
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as resp:
+                    emoji_content = await resp.read()
+            emoji_name = emoji_.demojize(emoji).replace(":", "")
+        for i in range(num):
+            new_emoji = await ctx.guild.create_custom_emoji(
+                name=emoji_name, image=emoji_content
+            )
+            await message.add_reaction(new_emoji)
+            await new_emoji.delete()
+            await ctx.message.add_reaction("\N{THUMBS UP SIGN}")
 
     ## Error handling
     @bot.event
@@ -63,6 +97,9 @@ if __name__ == "__main__":
         elif isinstance(error, commands.ArgumentParsingError):
             await ctx.send("An invalid character was detected. Please try again.")
 
+        elif isinstance(error, commands.NoPrivateMessage):
+            await ctx.send("**This command is unavaliable in DMs!**")
+
         elif isinstance(error, commands.BotMissingPermissions):
             await ctx.send(
                 "**The bot does not have enough permissions to fully function.**\n"
@@ -78,6 +115,12 @@ if __name__ == "__main__":
 
         elif isinstance(error, discord.NotFound):
             await ctx.send("**The message was not found or deleted.**\n")
+
+        else:
+            await ctx.send(
+                "**An uncaught error has occurred.**\n" + "**Error:** " + str(error)
+            )
+            raise error
 
     # Actually run the bot
     token = os.environ["DISCORD_BOT_TOKEN"]
