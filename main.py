@@ -26,6 +26,7 @@ if __name__ == "__main__":
             activity=discord.Activity(type=3, name="your every move")
         )
 
+
     @bot.event
     async def on_reaction_add(reaction, user):
         if reaction.emoji == "\N{PUSHPIN}" and reaction.count >= 3:
@@ -43,6 +44,7 @@ if __name__ == "__main__":
                 await reaction.message.unpin()
             except discord.HTTPException:
                 await ctx.send("**Unpinning the message failed.**")
+
 
     @bot.command(help="React multiple times with the same emoji!", aliases=["r"])
     @commands.guild_only()
@@ -68,6 +70,8 @@ if __name__ == "__main__":
                     emoji_content = await resp.read()
             emoji_name = emoji_.demojize(emoji).replace(":", "").replace("-", "_")
         print("emoji_name:", emoji_name)
+        print("len emoji_content:", len(emoji_content))
+
         for i in range(num):
             print(f"reacting {i} of {num}")
             new_emoji = await ctx.guild.create_custom_emoji(
@@ -79,6 +83,7 @@ if __name__ == "__main__":
             await new_emoji.delete()
             print("deleted emoji")
         await ctx.message.add_reaction("\N{THUMBS UP SIGN}")
+
 
     ## Error handling
     @bot.event
