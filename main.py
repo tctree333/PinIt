@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
     @bot.event
     async def on_reaction_remove(reaction, user):
-        if reaction.emoji == "\N{PUSHPIN}" and reaction.count < 3:
+        if reaction.emoji == "\N{PUSHPIN}" and reaction.count <= 1:
             try:
                 await reaction.message.unpin()
             except discord.HTTPException:
