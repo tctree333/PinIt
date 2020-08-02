@@ -73,9 +73,12 @@ if __name__ == "__main__":
             new_emoji = await ctx.guild.create_custom_emoji(
                 name=emoji_name, image=emoji_content
             )
+            print("created emoji")
             await message.add_reaction(new_emoji)
+            print("adding reaction")
             await new_emoji.delete()
-            await ctx.message.add_reaction("\N{THUMBS UP SIGN}")
+            print("deleted emoji")
+        await ctx.message.add_reaction("\N{THUMBS UP SIGN}")
 
     ## Error handling
     @bot.event
