@@ -11,6 +11,13 @@ from cache import cache
 TWEMOJI_CDN_URL = "https://twemoji.maxcdn.com/v/latest/72x72/{}.png"
 
 if __name__ == "__main__":
+    # Initialize bot
+    intent: discord.Intents = discord.Intents.none()
+    intent.guilds = True
+    intent.messages = True
+    intent.emojis = True
+    intent.reactions = True
+
     bot = commands.Bot(
         command_prefix=["p!"],
         case_insensitive=True,
@@ -35,7 +42,7 @@ if __name__ == "__main__":
             try:
                 await reaction.message.pin()
             except discord.HTTPException:
-                await ctx.send(
+                await reaction.message.channel.send(
                     "**Pinning the message failed.** Are there more than 50 pinned messages already?"
                 )
 
@@ -45,7 +52,7 @@ if __name__ == "__main__":
             try:
                 await reaction.message.unpin()
             except discord.HTTPException:
-                await ctx.send("**Unpinning the message failed.**")
+                await reaction.message.channel.send("**Unpinning the message failed.**")
 
 
     @bot.command(help="- React multiple times with the same emoji!", aliases=["r"])
