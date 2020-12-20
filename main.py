@@ -63,9 +63,9 @@ if __name__ == "__main__":
             )
             embed.add_field(
                 name="Original Message:",
-                value=f"By {user.mention}\n\n[Jump to message!]({reaction.message.jump_url})",
+                value=f"By {reaction.message.author.mention}\n\n[Jump to message!]({reaction.message.jump_url})",
             )
-            embed.set_author(name=str(user), icon_url=str(user.avatar_url))
+            embed.set_author(name=str(reaction.message.author), icon_url=str(reaction.message.author.avatar_url))
 
             pacific = pytz.timezone("US/Pacific")
             message_date = pytz.utc.localize(reaction.message.created_at).astimezone(
