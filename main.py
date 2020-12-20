@@ -1,14 +1,19 @@
+import datetime as dt
 import os
 from typing import Union
 
 import aiohttp
 import discord
 import emoji as emoji_
+import pytz
 from discord.ext import commands
 
 from cache import cache
 
 TWEMOJI_CDN_URL = "https://twemoji.maxcdn.com/v/latest/72x72/{}.png"
+
+STARBOARD_CHANNEL_ID = 790362316914163722
+STARBOARD_GUILD_ID = 692593519302279229
 
 if __name__ == "__main__":
     # Initialize bot
@@ -35,9 +40,8 @@ if __name__ == "__main__":
             activity=discord.Activity(type=3, name="your every move")
         )
 
-
     @bot.event
-    async def on_reaction_add(reaction, user):
+    async def on_reaction_add(reaction: discord.Reaction, user):
         if reaction.emoji == "\N{PUSHPIN}" and reaction.count >= 3:
             try:
                 await reaction.message.pin()
@@ -45,6 +49,32 @@ if __name__ == "__main__":
                 await reaction.message.channel.send(
                     "**Pinning the message failed.** Are there more than 50 pinned messages already?"
                 )
+        elif (
+            reaction.emoji == "\N{WHITE MEDIUM STAR}"
+            and reaction.count >= 3
+            and reaction.message.guild.id == STARBOARD_GUILD_ID
+        ):
+            channel = bot.get_channel(STARBOARD_CHANNEL_ID)
+
+            embed: discord.Embed = discord.Embed(
+                type="rich",
+                description=reaction.message.content,
+                color=discord.Color.gold(),
+            )
+            embed.add_field(
+                name="Original Message:",
+                value=f"By {user.mention}\n\n[Jump to message!]({reaction.message.jump_url})",
+            )
+            embed.set_author(name=str(user), icon_url=str(user.avatar_url))
+
+            pacific = pytz.timezone("US/Pacific")
+            message_date = pytz.utc.localize(reaction.message.created_at).astimezone(
+                pacific
+            )
+            embed.set_footer(
+                text=message_date.strftime("%a. %b. %d, %Y at %I:%M:%S %p %Z")
+            )
+            await channel.send(embed=embed)
 
     @bot.event
     async def on_reaction_remove(reaction, user):
@@ -53,7 +83,6 @@ if __name__ == "__main__":
                 await reaction.message.unpin()
             except discord.HTTPException:
                 await reaction.message.channel.send("**Unpinning the message failed.**")
-
 
     @bot.command(help="- React multiple times with the same emoji!", aliases=["r"])
     @commands.guild_only()
@@ -74,7 +103,11 @@ if __name__ == "__main__":
         if isinstance(emoji, str):
             print("unicode emoji")
             emoji_content = await get_emoji(emoji)
-            emoji_name = emoji_.demojize(emoji, use_aliases=True).replace(":", "").replace("-", "_")
+            emoji_name = (
+                emoji_.demojize(emoji, use_aliases=True)
+                .replace(":", "")
+                .replace("-", "_")
+            )
         print("emoji_name:", emoji_name)
         print("len emoji_content:", len(emoji_content))
 
@@ -90,12 +123,9 @@ if __name__ == "__main__":
             print("deleted emoji")
         await ctx.message.add_reaction("\N{THUMBS UP SIGN}")
 
-
     @bot.command(help="- React with words!", aliases=["m"])
     @commands.guild_only()
-    async def message(
-        ctx, string: str, message: discord.Message
-    ):
+    async def message(ctx, string: str, message: discord.Message):
         print("command: message")
         if len(string) < 1 or len(string) > 10:
             print("invalid num")
@@ -107,7 +137,9 @@ if __name__ == "__main__":
         for letter in string:
             print("letter: ", letter)
             emoji_name = f":regional_indicator_{letter}:"
-            emoji_content = await get_emoji(emoji_.emojize(emoji_name, use_aliases=True))
+            emoji_content = await get_emoji(
+                emoji_.emojize(emoji_name, use_aliases=True)
+            )
             print("len emoji_content:", len(emoji_content))
             new_emoji = await ctx.guild.create_custom_emoji(
                 name=emoji_name.replace(":", ""), image=emoji_content
@@ -119,7 +151,6 @@ if __name__ == "__main__":
             print("deleted emoji")
         await ctx.message.add_reaction("\N{THUMBS UP SIGN}")
 
-
     @cache()
     async def get_emoji(emoji: str) -> bytes:
         url = TWEMOJI_CDN_URL.format("-".join([f"{ord(char):x}" for char in emoji]))
@@ -127,7 +158,6 @@ if __name__ == "__main__":
             async with session.get(url) as resp:
                 emoji_content = await resp.read()
         return emoji_content
-
 
     ## Error handling
     @bot.event
