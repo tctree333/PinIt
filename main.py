@@ -12,7 +12,7 @@ from cache import cache
 
 TWEMOJI_CDN_URL = "https://twemoji.maxcdn.com/v/latest/72x72/{}.png"
 
-STARBOARD_CHANNEL_ID = 790362316914163722
+STARBOARD_CHANNEL_ID = 692594515638222935
 STARBOARD_GUILD_ID = 692593519302279229
 
 if __name__ == "__main__":
