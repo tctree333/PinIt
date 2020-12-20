@@ -29,6 +29,8 @@ if __name__ == "__main__":
         description="PinIt - Pin messages just by reacting!",
     )
 
+    starred_messages = set()
+
     @bot.event
     async def on_ready():
         print("Ready!")
@@ -52,8 +54,11 @@ if __name__ == "__main__":
         elif (
             reaction.emoji == "\N{WHITE MEDIUM STAR}"
             and reaction.count >= 3
+            and reaction.message.id not in starred_messages
             and reaction.message.guild.id == STARBOARD_GUILD_ID
         ):
+            starred_messages.add(reaction.message.id)
+
             channel = bot.get_channel(STARBOARD_CHANNEL_ID)
 
             embed: discord.Embed = discord.Embed(
