@@ -165,7 +165,7 @@ if __name__ == "__main__":
         return emoji_content
 
     # Send command - for testing purposes only
-    @commands.command(help="- send command", hidden=True, aliases=["sendas"])
+    @bot.command(help="- send command", hidden=True, aliases=["sendas"])
     @commands.is_owner()
     async def send_as_bot(self, ctx, *, args):
         channel_id = int(args.split(" ")[0])
