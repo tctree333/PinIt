@@ -170,7 +170,7 @@ if __name__ == "__main__":
     async def send_as_bot(ctx, *, args):
         channel_id = int(args.split(" ")[0])
         message = args.strip(str(channel_id))
-        channel = self.bot.get_channel(channel_id)
+        channel = bot.get_channel(channel_id)
         await channel.send(message)
         await ctx.send("Ok, sent!")
 
