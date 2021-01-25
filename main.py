@@ -164,6 +164,16 @@ if __name__ == "__main__":
                 emoji_content = await resp.read()
         return emoji_content
 
+    # Send command - for testing purposes only
+    @commands.command(help="- send command", hidden=True, aliases=["sendas"])
+    @commands.is_owner()
+    async def send_as_bot(self, ctx, *, args):
+        channel_id = int(args.split(" ")[0])
+        message = args.strip(str(channel_id))
+        channel = self.bot.get_channel(channel_id)
+        await channel.send(message)
+        await ctx.send("Ok, sent!")
+
     ## Error handling
     @bot.event
     async def on_command_error(ctx, error):
