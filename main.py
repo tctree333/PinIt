@@ -167,7 +167,7 @@ if __name__ == "__main__":
     # Send command - for testing purposes only
     @bot.command(help="- send command", hidden=True, aliases=["sendas"])
     @commands.is_owner()
-    async def send_as_bot(self, ctx, *, args):
+    async def send_as_bot(ctx, *, args):
         channel_id = int(args.split(" ")[0])
         message = args.strip(str(channel_id))
         channel = self.bot.get_channel(channel_id)
