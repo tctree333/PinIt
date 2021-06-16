@@ -1,6 +1,6 @@
 import datetime as dt
 import os
-from typing import Union
+from typing import Union, List
 
 import aiohttp
 import discord
@@ -70,7 +70,10 @@ if __name__ == "__main__":
                 name="Original Message:",
                 value=f"By {reaction.message.author.mention}\n\n[Jump to message!]({reaction.message.jump_url})",
             )
-            embed.set_author(name=str(reaction.message.author), icon_url=str(reaction.message.author.avatar_url))
+            embed.set_author(
+                name=str(reaction.message.author),
+                icon_url=str(reaction.message.author.avatar_url),
+            )
 
             pacific = pytz.timezone("US/Pacific")
             message_date = pytz.utc.localize(reaction.message.created_at).astimezone(
@@ -135,7 +138,7 @@ if __name__ == "__main__":
         if len(string) < 1 or len(string) > 10:
             print("invalid num")
             await ctx.send(
-                "**The string is invalid!**\n*Please use a word less than between 1 and 10 letters inclusive.*"
+                "**The string is invalid!**\n*Please use a word between 1 and 10 letters inclusive.*"
             )
             return
         print("string:", string)
@@ -156,8 +159,57 @@ if __name__ == "__main__":
             print("deleted emoji")
         await ctx.message.add_reaction("\N{THUMBS UP SIGN}")
 
+    @bot.command(help="- React with an emoji sequence!", aliases=["s"])
+    @commands.guild_only()
+    async def sequence(
+        ctx, *sequence: Union[discord.Message, discord.PartialEmoji, str]
+    ):
+        print("command: sequence")
+        if not isinstance(sequence[-1], discord.Message):
+            print("no message")
+            await ctx.send(
+                "**Invalid message!** Please ensure the last argument is the message to react to!"
+            )
+            return
+        message = sequence[-1]
+        sequence = sequence[:-1]
+        if len(sequence) < 1 or len(sequence) > 10:
+            print("invalid num")
+            await ctx.send(
+                "**The sequence is invalid!**\n*Please enter between 1 and 10 emojis inclusive.*"
+            )
+            return
+        print("sequence:", sequence)
+        for emoji in sequence:
+            print("emoji: ", emoji)
+            if isinstance(emoji, discord.PartialEmoji) and emoji.is_custom_emoji():
+                print("custom emoji")
+                emoji_content: bytes = await emoji.url.read()
+                emoji_name = emoji.name if emoji.name else "PinItCustomEmote"
+            if isinstance(emoji, str):
+                print("unicode emoji")
+                emoji_content = await get_emoji(emoji)
+                emoji_name = (
+                    emoji_.demojize(emoji, use_aliases=True)
+                    .replace(":", "")
+                    .replace("-", "_")
+                )
+            print("emoji_name:", emoji_name)
+            print("len emoji_content:", len(emoji_content))
+            new_emoji = await ctx.guild.create_custom_emoji(
+                name=emoji_name, image=emoji_content
+            )
+            print("created emoji")
+            await message.add_reaction(new_emoji)
+            print("adding reaction")
+            await new_emoji.delete()
+            print("deleted emoji")
+        await ctx.message.add_reaction("\N{THUMBS UP SIGN}")
+
     @cache()
     async def get_emoji(emoji: str) -> bytes:
+        if int("0x200d", base=16) not in map(ord, emoji):
+            emoji = emoji.replace("\ufe0f", "")
         url = TWEMOJI_CDN_URL.format("-".join([f"{ord(char):x}" for char in emoji]))
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as resp:
