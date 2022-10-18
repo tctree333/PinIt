@@ -1,4 +1,4 @@
 emoji==2.1.0
 discord.py==2.0.1
 pytz==2022.4
-aiohttp==3.8.0.post0
+aiohttp==3.8.3
