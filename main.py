@@ -20,6 +20,7 @@ if __name__ == "__main__":
     intent: discord.Intents = discord.Intents.none()
     intent.guilds = True
     intent.messages = True
+    intent.message_content = True
     intent.emojis = True
     intent.reactions = True
 
@@ -27,6 +28,7 @@ if __name__ == "__main__":
         command_prefix=["p!"],
         case_insensitive=True,
         description="PinIt - Pin messages just by reacting!",
+        intents=intent,
     )
 
     starred_messages = set()
@@ -112,7 +114,7 @@ if __name__ == "__main__":
             print("unicode emoji")
             emoji_content = await get_emoji(emoji)
             emoji_name = (
-                emoji_.demojize(emoji, use_aliases=True)
+                emoji_.demojize(emoji, language="alias")
                 .replace(":", "")
                 .replace("-", "_")
             )
@@ -143,14 +145,14 @@ if __name__ == "__main__":
             return
         print("string:", string)
         for letter in string:
+            letter = letter.lower()[0]
             print("letter: ", letter)
-            emoji_name = f":regional_indicator_{letter}:"
-            emoji_content = await get_emoji(
-                emoji_.emojize(emoji_name, use_aliases=True)
-            )
+
+            emoji_name = chr(ord(letter) - 97 + 127462)
+            emoji_content = await get_emoji(emoji_name)
             print("len emoji_content:", len(emoji_content))
             new_emoji = await ctx.guild.create_custom_emoji(
-                name=emoji_name.replace(":", ""), image=emoji_content
+                name=f"letter_{letter}", image=emoji_content
             )
             print("created emoji")
             await message.add_reaction(new_emoji)
@@ -190,7 +192,7 @@ if __name__ == "__main__":
                 print("unicode emoji")
                 emoji_content = await get_emoji(emoji)
                 emoji_name = (
-                    emoji_.demojize(emoji, use_aliases=True)
+                    emoji_.demojize(emoji, language="alias")
                     .replace(":", "")
                     .replace("-", "_")
                 )
